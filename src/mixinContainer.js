@@ -51,8 +51,11 @@ const mixinContainer = (React) => {
       this.registerStores(nextProps)
     },
 
-    componentDidMount() {
+    componentWillMount() {
       this.registerStores(this.props)
+    },
+
+    componentDidMount() {
       if (this.props.onMount) this.props.onMount(this.props, this.context)
     },
 

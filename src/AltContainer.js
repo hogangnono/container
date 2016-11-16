@@ -149,8 +149,11 @@ class AltContainer extends React.Component {
     }
   }
 
-  componentDidMount() {
+  componentWillMount() {
     this._registerStores(this.props)
+  }
+
+  componentDidMount() {
     if (this.props.onMount) this.props.onMount(this.props, this.context)
   }
 
