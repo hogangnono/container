@@ -155,10 +155,12 @@ class AltContainer extends React.Component {
   }
 
   componentDidMount() {
+    this._isMounted = true;
     if (this.props.onMount) this.props.onMount(this.props, this.context)
   }
 
   componentWillUnmount() {
+    this._isMounted = null;
     this._destroySubscriptions()
     if (this.props.onWillUnmount) {
       this.props.onWillUnmount(this.props, this.context)
@@ -194,7 +196,9 @@ class AltContainer extends React.Component {
   }
 
   altSetState = () => {
-    this.setState(reduceState(this.props))
+    if (this._isMounted) {
+      this.setState(reduceState(this.props))
+    }
   }
 
   getProps() {
