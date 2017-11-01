@@ -1,6 +1,7 @@
 /*eslint-disable*/
 import assign from 'object.assign'
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 
 const id = it => it
 
