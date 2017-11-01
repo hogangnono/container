@@ -58,8 +58,9 @@
 import React from 'react'
 import mixinContainer from './mixinContainer'
 import assign from 'object.assign'
+import createReactClass from 'create-react-class';
 
-const AltContainer = React.createClass(assign({
+const AltContainer = createReactClass(assign({
   displayName: 'AltContainer',
 
   render() {

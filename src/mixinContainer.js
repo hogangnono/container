@@ -178,13 +178,21 @@ const mixinContainer = (React) => {
       // Does not wrap child in a div if we don't have to.
       if (Array.isArray(children)) {
         return React.createElement(Node, null, children.map((child, i) => {
+          if (React.isValidElement(child) && typeof child.type === 'string') {
+            return React.cloneElement(child, { key: i });
+          }
+
           return cloneElement(child, assign(
             { key: i },
             this.getProps()
           ))
         }, this))
       } else if (children) {
-        return cloneElement(children, this.getProps())
+        if (React.isValidElement(children) && typeof children.type === 'string') {
+          return children;
+        } else {
+          return cloneElement(children, this.getProps())
+        }
       } else {
         return React.createElement(Node, this.getProps())
       }
