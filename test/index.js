@@ -325,7 +325,7 @@ export default {
         </AltContainer>
       )
 
-      assert.ok(storeFunction.calledTwice, 'called twice, once for store listening and another for props')
+      assert.ok(storeFunction.calledThrice, 'called thrice, once for store listening and another for props, to compare changed props')
       assert(storeFunction.args[0].length === 1, 'called with one parameter')
       assert(storeFunction.args[1].length === 1, 'called with one parameter')
       assert.isObject(storeFunction.args[0][0], 'called with the props')
