@@ -61,7 +61,7 @@ const mixinContainer = (React) => {
 
       // Update states when changed before binding listeners
       if (!_.isEqual(this.state, nextState)) {
-        this.state = nextState;
+        this.setState(nextState);
       }
     },
 
