@@ -1,16 +1,35 @@
 import { jsdom } from 'jsdom'
 import Alt from 'alt'
 import React from 'react'
+import PropTypes from 'prop-types';
 import AltContainer from '../'
-import withAltContext from 'alt-utils/lib/withAltContext'
 import { assert } from 'chai'
 import sinon from 'sinon'
-import TestUtils from 'react-addons-test-utils'
+import TestUtils from 'react-dom/test-utils'
 import ReactDom from 'react-dom'
+import createReactClass from 'create-react-class';
 
 const alt = new Alt()
 
 const action = alt.generateActions('sup')
+
+const withAltContext = function (flux) {
+  return function (Component) {
+    return createReactClass({
+      childContextTypes: {
+        flux: PropTypes.object
+      },
+
+      getChildContext: function getChildContext() {
+        return { flux: flux };
+      },
+
+      render: function render() {
+        return React.createElement(Component, this.props);
+      }
+    });
+  };
+};
 
 const TestStore = alt.createStore({
   displayName: 'TestStore',
@@ -62,6 +81,12 @@ class Flux extends Alt {
   }
 }
 
+const SpyComponent = createReactClass({
+  render() {
+    return null;
+  }
+});
+
 export default {
   'AltContainer': {
     beforeEach() {
@@ -80,7 +105,7 @@ export default {
       const div = document.createElement('div')
       ReactDom.render(
         <AltContainer>
-          <div />
+          <SpyComponent />
         </AltContainer>
       , div)
 
@@ -90,10 +115,10 @@ export default {
     'many elements mount'() {
       TestUtils.renderIntoDocument(
         <AltContainer>
-          <div />
-          <div />
-          <div />
-          <div />
+          <SpyComponent />
+          <SpyComponent />
+          <SpyComponent />
+          <SpyComponent />
         </AltContainer>
       )
     },
@@ -101,7 +126,7 @@ export default {
     'element has correct state'() {
       const node = TestUtils.renderIntoDocument(
         <AltContainer stores={{ TestStore }}>
-          <div />
+          <SpyComponent />
         </AltContainer>
       )
 
@@ -137,14 +162,14 @@ export default {
     'children get flux as props with context'() {
       const flux = new Flux()
 
-      const TestComponent = React.createClass({
+      const TestComponent = createReactClass({
         render() {
           return (
             <AltContainer>
               <div>
                 <div>
                   <AltContainer>
-                    <span />
+                    <SpyComponent />
                   </AltContainer>
                 </div>
               </div>
@@ -156,9 +181,9 @@ export default {
       const WrappedComponent = withAltContext(flux)(TestComponent)
 
       const node = TestUtils.renderIntoDocument(<WrappedComponent />)
-      const span = TestUtils.findRenderedDOMComponentWithTag(node, 'span')
+      const spy = TestUtils.findRenderedComponentWithType(node, SpyComponent)
 
-      assert.instanceOf(span.props.flux, Flux)
+      assert.instanceOf(spy.props.flux, Flux)
     },
 
     'works with instances and props'() {
@@ -166,7 +191,7 @@ export default {
 
       const node = TestUtils.renderIntoDocument(
         <AltContainer flux={flux}>
-          <div />
+          <SpyComponent />
         </AltContainer>
       )
 
@@ -178,29 +203,35 @@ export default {
 
       const node = TestUtils.renderIntoDocument(
         <AltContainer flux={flux}>
-          <span />
+          <SpyComponent />
         </AltContainer>
       )
 
-      const span = TestUtils.findRenderedDOMComponentWithTag(node, 'span')
+      const spy = TestUtils.findRenderedComponentWithType(node, SpyComponent)
 
-      assert.instanceOf(span.props.flux, Flux)
+      assert.instanceOf(spy.props.flux, Flux)
     },
 
     'flux prop works with the transform function'() {
       const flux = new Flux()
 
-      const TestComponent = React.createClass({
+      const ParentSpyComponent = createReactClass({
+        render() {
+          return this.props.children;
+        }
+      })
+
+      const TestComponent = createReactClass({
         render() {
           return (
             <AltContainer transform={({ flux }) => { return { flx: flux } }}>
-              <div>
+              <ParentSpyComponent>
                 <div>
                   <AltContainer>
-                    <span />
+                    <SpyComponent />
                   </AltContainer>
                 </div>
-              </div>
+              </ParentSpyComponent>
             </AltContainer>
           )
         }
@@ -209,59 +240,57 @@ export default {
       const WrappedComponent = withAltContext(flux)(TestComponent);
 
       const node = TestUtils.renderIntoDocument(<WrappedComponent />)
-      const div  = TestUtils.scryRenderedDOMComponentsWithTag(node, 'div')[0]
-      const span = TestUtils.findRenderedDOMComponentWithTag(node, 'span')
+      const parent  = TestUtils.findRenderedComponentWithType(node, ParentSpyComponent)
+      const spy = TestUtils.findRenderedComponentWithType(node, SpyComponent)
 
-      assert(div.props.flx === flux)
-      assert.isUndefined(span.props.flx)
-      assert(span.props.flux === flux)
+      assert(parent.props.flx === flux)
+      assert.isUndefined(spy.props.flx)
+      assert(spy.props.flux === flux)
     },
 
     'children get the state via props'() {
       const node = TestUtils.renderIntoDocument(
         <AltContainer stores={{ TestStore }}>
-          <span />
+          <SpyComponent />
         </AltContainer>
       )
 
       action.sup('foobar')
 
-      const span = TestUtils.findRenderedDOMComponentWithTag(node, 'span')
+      const spy = TestUtils.findRenderedComponentWithType(node, SpyComponent)
 
-      assert(span.props.TestStore.x === 'foobar')
+      assert(spy.props.TestStore.x === 'foobar')
     },
 
     'many children get state via props'() {
       const node = TestUtils.renderIntoDocument(
         <AltContainer stores={{ TestStore }}>
-          <span />
-          <strong />
-          <em />
+          <SpyComponent />
+          <SpyComponent />
+          <SpyComponent />
         </AltContainer>
       )
 
       action.sup('foobar')
 
-      const span = TestUtils.findRenderedDOMComponentWithTag(node, 'span')
-      const strong = TestUtils.findRenderedDOMComponentWithTag(node, 'strong')
-      const em = TestUtils.findRenderedDOMComponentWithTag(node, 'em')
+      const spies = TestUtils.scryRenderedComponentsWithType(node, SpyComponent)
 
-      assert(span.props.TestStore.x === 'foobar')
-      assert(strong.props.TestStore.x === 'foobar')
-      assert(em.props.TestStore.x === 'foobar')
+      assert(spies[0].props.TestStore.x === 'foobar')
+      assert(spies[1].props.TestStore.x === 'foobar')
+      assert(spies[2].props.TestStore.x === 'foobar')
     },
 
     'passing in other props'() {
       const node = TestUtils.renderIntoDocument(
         <AltContainer className="no" stores={{ TestStore }}>
-          <div className="hello" />
+          <SpyComponent className="hello" />
         </AltContainer>
       )
 
-      const div = TestUtils.findRenderedDOMComponentWithTag(node, 'div')
+      const spy = TestUtils.findRenderedComponentWithType(node, SpyComponent)
 
-      assert(div.props.className === 'hello')
-      assert.isUndefined(div.props.stores)
+      assert(spy.props.className === 'hello')
+      assert.isUndefined(spy.props.stores)
     },
 
     'does not wrap if it does not have to'() {
@@ -286,14 +315,14 @@ export default {
     'passing in a single store'() {
       const node = TestUtils.renderIntoDocument(
         <AltContainer store={TestStore}>
-          <span />
+          <SpyComponent />
         </AltContainer>
       )
-      const span = TestUtils.findRenderedDOMComponentWithTag(node, 'span')
+      const spy = TestUtils.findRenderedComponentWithType(node, SpyComponent)
 
       action.sup('just testing')
 
-      assert(span.props.x === 'just testing')
+      assert(spy.props.x === 'just testing')
     },
 
     'pass in single function'() {
@@ -304,12 +333,12 @@ export default {
             value: { x: 'jesting' }
           }
         }}>
-          <span />
+          <SpyComponent />
         </AltContainer>
       )
-      const span = TestUtils.findRenderedDOMComponentWithTag(node, 'span')
+      const spy = TestUtils.findRenderedComponentWithType(node, SpyComponent)
 
-      assert(span.props.x === 'jesting')
+      assert(spy.props.x === 'jesting')
     },
 
     'function is called with props'() {
@@ -321,7 +350,7 @@ export default {
 
       TestUtils.renderIntoDocument(
         <AltContainer className="foo" store={storeFunction}>
-          <span />
+          <SpyComponent />
         </AltContainer>
       )
 
@@ -352,13 +381,13 @@ export default {
 
       const node = TestUtils.renderIntoDocument(
         <AltContainer stores={Functions}>
-          <span />
+          <SpyComponent />
         </AltContainer>
       )
-      const span = TestUtils.findRenderedDOMComponentWithTag(node, 'span')
+      const spy = TestUtils.findRenderedComponentWithType(node, SpyComponent)
 
-      assert(span.props.x.a === 'hello')
-      assert(span.props.y.b === 'goodbye')
+      assert(spy.props.x.a === 'hello')
+      assert(spy.props.y.b === 'goodbye')
     },
 
     'nested components pass down flux'() {
@@ -366,13 +395,13 @@ export default {
       const node = TestUtils.renderIntoDocument(
         <AltContainer flux={flux}>
           <AltContainer>
-            <span />
+            <SpyComponent />
           </AltContainer>
         </AltContainer>
       )
-      const span = TestUtils.findRenderedDOMComponentWithTag(node, 'span')
+      const spy = TestUtils.findRenderedComponentWithType(node, SpyComponent)
 
-      assert.instanceOf(span.props.flux, Flux)
+      assert.instanceOf(spy.props.flux, Flux)
     },
 
     'custom rendering'() {
@@ -394,8 +423,7 @@ export default {
         />
       )
       const span = TestUtils.findRenderedDOMComponentWithTag(node, 'span')
-
-      assert(span.props.className === 'testing testing')
+      assert(span.className === 'testing testing')
     },
 
     'define both stores and store'() {
@@ -409,7 +437,7 @@ export default {
     'changing an already mounted components props'() {
       let cb = null
 
-      const El = React.createClass({
+      const El = createReactClass({
         getInitialState() {
           return { store: TestStore }
         },
@@ -439,27 +467,27 @@ export default {
     'inject actions'() {
       const node = TestUtils.renderIntoDocument(
         <AltContainer actions={{ MyActions: action }}>
-          <span />
+          <SpyComponent />
         </AltContainer>
       )
 
-      const span = TestUtils.findRenderedDOMComponentWithTag(node, 'span')
+      const spy = TestUtils.findRenderedComponentWithType(node, SpyComponent)
 
-      assert.isObject(span.props.MyActions, 'MyActions exist')
-      assert(span.props.MyActions === action, 'MyActions is injected actions')
-      assert.isFunction(span.props.MyActions.sup, 'sup action is available')
+      assert.isObject(spy.props.MyActions, 'MyActions exist')
+      assert(spy.props.MyActions === action, 'MyActions is injected actions')
+      assert.isFunction(spy.props.MyActions.sup, 'sup action is available')
     },
 
     'inject all actions directly shorthand'() {
       const node = TestUtils.renderIntoDocument(
         <AltContainer actions={action}>
-          <span />
+          <SpyComponent />
         </AltContainer>
       )
 
-      const span = TestUtils.findRenderedDOMComponentWithTag(node, 'span')
+      const spy = TestUtils.findRenderedComponentWithType(node, SpyComponent)
 
-      assert.isFunction(span.props.sup, 'sup is available directly on the props')
+      assert.isFunction(spy.props.sup, 'sup is available directly on the props')
     },
 
     'inject all actions using a function'() {
@@ -471,14 +499,14 @@ export default {
             }
           }
         }}>
-          <span />
+          <SpyComponent />
         </AltContainer>
       )
 
-      const span = TestUtils.findRenderedDOMComponentWithTag(node, 'span')
+      const spy = TestUtils.findRenderedComponentWithType(node, SpyComponent)
 
-      assert.isObject(span.props.FooActions, 'actions are injected')
-      assert.isFunction(span.props.FooActions.sup, 'sup is available')
+      assert.isObject(spy.props.FooActions, 'actions are injected')
+      assert.isFunction(spy.props.FooActions.sup, 'sup is available')
     },
 
     'scu'() {
@@ -504,24 +532,24 @@ export default {
             return TestStore.getState()
           }
         }}>
-          <span />
+          <SpyComponent />
         </AltContainer>
       )
 
-      const span = TestUtils.findRenderedDOMComponentWithTag(node, 'span')
+      const spy = TestUtils.findRenderedComponentWithType(node, SpyComponent)
 
-      assert(span.props.className === 'foo', 'you can inject custom things')
-      assert.isDefined(span.props.foo.x, 'functions are ran')
+      assert(spy.props.className === 'foo', 'you can inject custom things')
+      assert.isDefined(spy.props.foo.x, 'functions are ran')
 
       action.sup(888)
 
-      assert(span.props.foo.x === 888, 'when passing stores as Array they are just listened on')
+      assert(spy.props.foo.x === 888, 'when passing stores as Array they are just listened on')
     },
 
     'passing in a component as a prop'() {
-      const App = React.createClass({
+      const App = createReactClass({
         render() {
-          return <strong x={this.props.x} />
+          return <SpyComponent x={this.props.x} />
         }
       })
 
@@ -529,24 +557,24 @@ export default {
         <AltContainer store={TestStore} component={App} />
       )
 
-      const strong = TestUtils.findRenderedDOMComponentWithTag(node, 'strong')
+      const spy = TestUtils.findRenderedComponentWithType(node, SpyComponent)
 
       action.sup(1337)
 
-      assert.isDefined(strong, 'component exists')
-      assert(strong.props.x === 1337, 'and we have props from TestStore')
+      assert.isDefined(spy, 'component exists')
+      assert(spy.props.x === 1337, 'and we have props from TestStore')
     },
 
     'nested components and context'() {
       const flux = new Flux()
 
-      const View = React.createClass({
+      const View = createReactClass({
         render() {
           return <SubView />
         }
       })
 
-      const SubView = React.createClass({ render() {
+      const SubView = createReactClass({ render() {
         return (
           <AltContainer>
             <InsideComponent />
@@ -554,15 +582,15 @@ export default {
         )
       } })
 
-      const InsideComponent = React.createClass({
+      const InsideComponent = createReactClass({
         render() {
-          return <span flux={this.props.flux} />
+          return <SpyComponent flux={this.props.flux} />
         }
       })
 
       const foo = sinon.spy()
 
-      const App = React.createClass({
+      const App = createReactClass({
         render() {
           return (
             <AltContainer flux={flux} onMount={foo}>
@@ -573,9 +601,9 @@ export default {
       })
 
       const node = TestUtils.renderIntoDocument(<App />)
-      const span = TestUtils.findRenderedDOMComponentWithTag(node, 'span')
+      const spy = TestUtils.findRenderedComponentWithType(node, SpyComponent)
 
-      assert.instanceOf(span.props.flux, Flux)
+      assert.instanceOf(spy.props.flux, Flux)
 
       assert.ok(foo.calledOnce, 'onMount hook was called')
     },
