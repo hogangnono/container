@@ -57,7 +57,8 @@
  */
 import React from 'react'
 import PropTypes from 'prop-types';
-import assign from 'object.assign'
+import assign from 'object.assign';
+import _ from 'underscore';
 
 const id = it => it
 const getStateFromStore = (store, props) => {
@@ -150,17 +151,19 @@ class AltContainer extends React.Component {
     }
   }
 
-  componentWillMount() {
-    this._registerStores(this.props)
-  }
-
   componentDidMount() {
-    this._isMounted = true;
+    this._registerStores(this.props)
     if (this.props.onMount) this.props.onMount(this.props, this.context)
+
+    const nextState = reduceState(this.props);
+
+    // Update states when changed before binding listeners
+    if (!_.isEqual(this.state, nextState)) {
+      this.state = nextState;
+    }
   }
 
   componentWillUnmount() {
-    this._isMounted = null;
     this._destroySubscriptions()
     if (this.props.onWillUnmount) {
       this.props.onWillUnmount(this.props, this.context)
@@ -196,9 +199,7 @@ class AltContainer extends React.Component {
   }
 
   altSetState = () => {
-    if (this._isMounted) {
-      this.setState(reduceState(this.props))
-    }
+    this.setState(reduceState(this.props))
   }
 
   getProps() {

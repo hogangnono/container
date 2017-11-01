@@ -52,12 +52,16 @@ const mixinContainer = (React) => {
       this.registerStores(nextProps)
     },
 
-    componentWillMount() {
-      this.registerStores(this.props)
-    },
-
     componentDidMount() {
+      this.registerStores(this.props)
       if (this.props.onMount) this.props.onMount(this.props, this.context)
+
+      const nextState = reduceState(this.props);
+
+      // Update states when changed before binding listeners
+      if (!_.isEqual(this.state, nextState)) {
+        this.state = nextState;
+      }
     },
 
     componentWillUnmount() {
