@@ -118,11 +118,11 @@ const getStateFromStores = (props) => {
 // what about propTypes?
 class AltContainer extends React.Component {
   static contextTypes = {
-    flux: PropTypes.object,
+    flux: PropTypes.object
   }
 
   static childContextTypes = {
-    flux: PropTypes.object,
+    flux: PropTypes.object
   }
 
   getChildContext() {
