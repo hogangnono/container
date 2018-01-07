@@ -8,6 +8,7 @@
     "build": "babel src --out-dir lib --stage 0",
     "preinstall": "npm run build",
     "prepare": "npm run build",
+    "prepublish": "npm run build",
     "test": "npm run clean && npm run build && mocha -u exports -R nyan --require ./test/babel test"
   },
   "repository": {
