@@ -7,6 +7,7 @@
     "clean": "rimraf lib && rimraf utils",
     "build": "babel src --out-dir lib --stage 0",
     "install": "npm run build",
+    "prepare": "npm run build",
     "test": "npm run clean && npm run build && mocha -u exports -R nyan --require ./test/babel test"
   },
   "repository": {
