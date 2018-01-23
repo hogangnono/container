@@ -168,6 +168,7 @@ const mixinContainer = (React) => {
 
     altRender(Node) {
       var children = this.props.children
+
       // Custom rendering function
       if (typeof this.props.render === 'function') {
         return this.props.render(this.getProps())
@@ -177,16 +178,20 @@ const mixinContainer = (React) => {
 
       // Does not wrap child in a div if we don't have to.
       if (Array.isArray(children)) {
-        return React.createElement(Node, null, children.map((child, i) => {
-          if (React.isValidElement(child) && typeof child.type === 'string') {
-            return React.cloneElement(child, { key: i });
-          }
+        return (
+          <React.Fragment>
+            {children.map((child, i) => {
+              if (React.isValidElement(child) && typeof child.type === 'string') {
+                return React.cloneElement(child, { key: i });
+              }
 
-          return cloneElement(child, assign(
-            { key: i },
-            this.getProps()
-          ))
-        }, this))
+              return cloneElement(child, assign(
+                { key: i },
+                this.getProps()
+              ));
+            })}
+          </React.Fragment>
+        );
       } else if (children) {
         if (React.isValidElement(children) && typeof children.type === 'string') {
           return children;

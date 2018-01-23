@@ -232,16 +232,20 @@ class AltContainer extends React.Component {
 
     // Does not wrap child in a div if we don't have to.
     if (Array.isArray(children)) {
-      return React.createElement(Node, null, children.map((child, i) => {
-        if (React.isValidElement(child) && typeof child.type === 'string') {
-          return React.cloneElement(child, { key: i });
-        }
+      return (
+        <React.Fragment>
+          {children.map((child, i) => {
+            if (React.isValidElement(child) && typeof child.type === 'string') {
+              return React.cloneElement(child, { key: i });
+            }
 
-        return React.cloneElement(child, assign(
-          { key: i },
-          this.getProps()
-        ))
-      }))
+            return React.cloneElement(child, assign(
+              { key: i },
+              this.getProps()
+            ));
+          })}
+        </React.Fragment>
+      );
     } else if (children) {
       if (React.isValidElement(children) && typeof children.type === 'string') {
         return children;
@@ -254,4 +258,4 @@ class AltContainer extends React.Component {
   }
 }
 
-export default AltContainer
+export default AltContainer;

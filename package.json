@@ -49,9 +49,9 @@
     "chai": "3.3.0",
     "jsdom": "6.5.1",
     "mocha": "2.3.3",
-    "react": "^16.0.0",
+    "react": "^16.2.0",
     "react-addons-test-utils": "^15.6.2",
-    "react-dom": "^16.0.0",
+    "react-dom": "^16.2.0",
     "rimraf": "2.4.3",
     "sinon": "1.17.1"
   }
