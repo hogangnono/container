@@ -181,7 +181,7 @@ const mixinContainer = (React) => {
         return (
           <React.Fragment>
             {children.map((Child, i) => {
-              if (React.isValidElement(Child) && typeof child.type === 'string') {
+              if (React.isValidElement(Child) && typeof Child.type === 'string') {
                 return <Child key={i} />;
               }
 
