@@ -234,8 +234,15 @@ class AltContainer extends React.Component {
     if (Array.isArray(children)) {
       return (
         <React.Fragment>
-          {children.map((Child, i) => {
-            return <Child key={i} {...this.getProps()} />;
+          {children.map((child, i) => {
+            if (React.isValidElement(child) && typeof child.type === 'string') {
+              return React.cloneElement(child, { key: i });
+            }
+
+            return React.cloneElement(child, assign(
+              { key: i },
+              this.getProps()
+            ));
           })}
         </React.Fragment>
       );
@@ -243,11 +250,10 @@ class AltContainer extends React.Component {
       if (React.isValidElement(children) && typeof children.type === 'string') {
         return children;
       } else {
-        const Child = children;
-        return <Child {...this.getProps()} />;
+        return React.cloneElement(children, this.getProps())
       }
     } else {
-      return <div />;
+      return React.createElement(Node, this.getProps())
     }
   }
 }

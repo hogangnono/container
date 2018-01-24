@@ -180,12 +180,15 @@ const mixinContainer = (React) => {
       if (Array.isArray(children)) {
         return (
           <React.Fragment>
-            {children.map((Child, i) => {
-              if (React.isValidElement(Child) && typeof child.type === 'string') {
-                return <Child key={i} />;
+            {children.map((child, i) => {
+              if (React.isValidElement(child) && typeof child.type === 'string') {
+                return React.cloneElement(child, { key: i });
               }
 
-              return <Child key={i} {...this.getProps()} />;
+              return cloneElement(child, assign(
+                { key: i },
+                this.getProps()
+              ));
             })}
           </React.Fragment>
         );
@@ -193,11 +196,10 @@ const mixinContainer = (React) => {
         if (React.isValidElement(children) && typeof children.type === 'string') {
           return children;
         } else {
-          const Child = children;
-          return <Child {...this.getProps()} />;
+          return cloneElement(children, this.getProps())
         }
       } else {
-        return <div />;
+        return React.createElement(Node, this.getProps())
       }
     }
   }
