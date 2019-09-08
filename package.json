@@ -1,18 +1,16 @@
 {
   "name": "alt-container",
-  "version": "1.1.1",
+  "version": "1.1.1-hogangnono",
   "description": "A flux container for alt",
   "main": "lib/AltContainer.js",
   "scripts": {
     "clean": "rimraf lib && rimraf utils",
     "build": "babel src --out-dir lib --stage 0",
-    "install": "npm run build",
-    "prepare": "npm run build",
     "test": "npm run clean && npm run build && mocha -u exports -R nyan --require ./test/babel test"
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:altjs/container.git"
+    "url": "git@github.com:hogangnono/container.git"
   },
   "keywords": [
     "altcontainer",
@@ -24,12 +22,12 @@
     "flux",
     "react"
   ],
-  "author": "Josh Perez <josh@goatslacker.com>",
+  "author": "hogangnono",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/altjs/container/issues"
+    "url": "https://github.com/hogangnono/container/issues"
   },
-  "homepage": "https://github.com/altjs/container",
+  "homepage": "https://github.com/hogangnono/container",
   "dependencies": {
     "babel-cli": "^6.26.0",
     "babel-polyfill": "^6.26.0",
@@ -54,5 +52,8 @@
     "react-dom": "^16.2.0",
     "rimraf": "2.4.3",
     "sinon": "1.17.1"
+  },
+  "publishConfig": {
+    "registry": "https://npm.housefeed.com"
   }
 }
